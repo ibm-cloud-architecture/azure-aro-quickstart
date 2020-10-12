@@ -114,17 +114,11 @@ When creating a cluster, you can optionally pass your OpenShift Pull Secret to t
 
 ```bash
 $ az aro create --resource-group $RESOURCEGROUP --name $CLUSTER --vnet $CLUSTER-vnet \
-	--master-subnet master-subnet \
-	--worker-subnet worker-subnet \
-	--client-id ${SP_APPID} \
-	--client-secret ${SP_PASSWD} \
-	--master-vm-size Standard_D4s_v3 \
-	--worker-vm-size Standard_D4s_v3 \
-	--worker-count 3 \
-	--pull-secret @pull-secret.txt \
-	--domain foo.example.com \
-	--apiserver-visibility Public \
-	--ingress-visibility Public
+	--client-id ${SP_APPID} --client-secret ${SP_PASSWD} \
+	--master-subnet master-subnet --worker-subnet worker-subnet \
+	--master-vm-size Standard_D4s_v3 --worker-vm-size Standard_D4s_v3 --worker-count 3 \
+	--pull-secret @pull-secret.txt --domain foo.example.com \
+	--apiserver-visibility Public --ingress-visibility Public
 ```
 
 This step can take up to 45 minutes to complete.
