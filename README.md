@@ -118,7 +118,7 @@ $ az aro create --resource-group $RESOURCEGROUP --name $CLUSTER --vnet $CLUSTER-
 	--worker-subnet worker-subnet \
 	--client-id ${SP_APPID} \
 	--client-secret ${SP_PASSWD} \
-  --master-vm-size Standard_D4s_v3 \
+	--master-vm-size Standard_D4s_v3 \
 	--worker-vm-size Standard_D4s_v3 \
 	--worker-count 3 \
 	--pull-secret @pull-secret.txt \
