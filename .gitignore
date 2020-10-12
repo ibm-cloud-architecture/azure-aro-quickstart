@@ -1,0 +1,4 @@
+# Mac stuff
+.DS_Store
+pull-secret.txt
+serviceprincipal.json
