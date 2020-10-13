@@ -176,6 +176,23 @@ $ APISERVER=$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --quer
 $ PASSWORD=$(az aro list-credentials --name $CLUSTER --resource-group $RESOURCEGROUP --query "kubeadminPassword" -o tsv)
 $ oc login $APISERVER -u kubeadmin -p $PASSWORD
 
+# create ClusterRole to access secrets
+$ cat << EOF | oc create -f -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:azure-file-volume-binder
+rules:
+- apiGroups: ['']
+  resources: ['secrets']
+  verbs:     ['get','create']
+EOF
+
+# assign ClusterRole to ServiceAccount
+$ oc adm policy add-cluster-role-to-user \
+	system:azure-file-volume-binder \
+	system:serviceaccount:kube-system:persistent-volume-binder
+
 # create the azure-file storage class
 $ cat << EOF | oc create -f -
 kind: StorageClass
@@ -188,7 +205,6 @@ parameters:
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 EOF
-
 ```
 
 
