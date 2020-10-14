@@ -167,8 +167,8 @@ By default, your ARO cluster will contain the storage class `managed-premium` th
 ```bash
 # obtain the managed resource group for your ARO cluster
 # WARNING: If you deploy with a custom domain, the value of clusterProfile.domain
-#		will be your domain FQDN.  Log on to your azure portal, find the aro-<random>
-#		resource group for your cluster, and manually set the MANAGED_RG variable
+#	will be your domain FQDN.  Log on to your azure portal, find the aro-<random>
+#	resource group for your cluster, and manually set the MANAGED_RG variable
 $ MANAGED_RG="aro-$(az aro show --name $CLUSTER \
 	--resource-group $RESOURCEGROUP --query "clusterProfile.domain" -o tsv)"
 
