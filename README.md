@@ -99,7 +99,7 @@ $ az network vnet subnet update --name master-subnet \
 
 # create a service principal
 $ az ad sp create-for-rbac --name $CLUSTER-aro-service-principal \
-  --role Contributor > serviceprincipal.json
+ 	--role Contributor > serviceprincipal.json
 
 # obtain AppID and password for service principal
 $ SP_APPID=$(jq -r .appId serviceprincipal.json)
