@@ -242,6 +242,7 @@ $ AZUREAD_APPID=$(az ad app create --display-name $CLUSTER-azuread-auth \
 	--password ${SP_AAD_PASSWORD} \
 	--query appId -o tsv)
 
+# update app optionalClaims
 $ cat > manifest.json<< EOF
 [{
   "name": "upn",
@@ -256,8 +257,6 @@ $ cat > manifest.json<< EOF
   "additionalProperties": []
 }]
 EOF
-
-# update app optionalClaims
 $ az ad app update --set optionalClaims.idToken=@manifest.json --id ${AZUREAD_APPID}
 
 # update AAD app scope permissions
