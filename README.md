@@ -297,3 +297,15 @@ spec:
 EOF
 ```
 
+
+
+## Cleanup
+
+Remove your cluster and all associated resources from your Azure subscription
+```bash
+$ az aro delete -g $RESOURCEGROUP -n $CLUSTER -y
+$ az ad app delete --id $AZUREAD_APPID
+$ az ad sp delete --id $SP_APPID
+$ az group delete -g $RESOURCEGROUP --no-wait -y
+```
+
