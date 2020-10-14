@@ -221,7 +221,7 @@ EOF
 ```bash
 # setup environment
 $ SP_AAD_PASSWORD='Y0urS3cr3tPa55w@rd'
-$ AZURE_TENNANT_ID="$(az account show --query tenantId -o tsv)
+$ AZURE_TENNANT_ID=$(az account show --query tenantId -o tsv)
 $ CONSOLE_URL=$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --query "consoleProfile.url" -o tsv)
 $ OAUTH_ENDPOINT=$(echo $CONSOLE_URL|sed 's/console-openshift-console/oauth-openshift/')
 
