@@ -265,9 +265,9 @@ $ az ad app update --set optionalClaims.idToken=@manifest.json --id ${AZUREAD_AP
 # 	you can ignore the message to grant the consent, since you'll be asked to do this 
 # 	once you login on your own account.
 $ az ad app permission add \
- --api 00000002-0000-0000-c000-000000000000 \
- --api-permissions 311a71cc-e848-46a1-bdf8-97ff7156d8e6=Scope \
- --id ${AZUREAD_APPID}
+	--api 00000002-0000-0000-c000-000000000000 \
+	--api-permissions 311a71cc-e848-46a1-bdf8-97ff7156d8e6=Scope \
+	--id ${AZUREAD_APPID}
 
 # update OpenShift OAuth
 $ cat << EOF | oc replace -f -
