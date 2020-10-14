@@ -2,3 +2,4 @@
 .DS_Store
 pull-secret.txt
 serviceprincipal.json
+manifest.json

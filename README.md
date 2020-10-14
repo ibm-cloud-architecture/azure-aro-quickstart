@@ -98,7 +98,7 @@ $ az network vnet subnet update --name master-subnet \
 	--disable-private-link-service-network-policies true
 
 # create a service principal
-$ az ad sp create-for-rbac --name $CLUSTER-service-principal \
+$ az ad sp create-for-rbac --name $CLUSTER-aro-service-principal \
   --role Contributor > serviceprincipal.json
 
 # obtain AppID and password for service principal
@@ -166,6 +166,8 @@ By default, your ARO cluster will contain the storage class `managed-premium` th
 
 ```bash
 # obtain the managed resource group for your ARO cluster
+# WARNING: If you set a --domain when deploying ARO, the value of clusterProfile.domain
+# 	will be your domain.  Log on to your azure portal and manually set the MANAGED_RG variable
 $ MANAGED_RG="aro-$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --query "clusterProfile.domain" -o tsv)"
 
 # obtain the storage account that can be used to create azure-file storage
@@ -174,7 +176,7 @@ $ MANAGED_SA=$(az storage account list -g $MANAGED_RG --query "[?starts_with(nam
 # log on to your openshift cluster via command line
 $ APISERVER=$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --query "apiserverProfile.url" -o tsv)
 $ PASSWORD=$(az aro list-credentials --name $CLUSTER --resource-group $RESOURCEGROUP --query "kubeadminPassword" -o tsv)
-$ oc login $APISERVER -u kubeadmin -p $PASSWORD
+$ oc login $APISERVER -u kubeadmin -p $PASSWORD --insecure-skip-tls-verify
 
 # create ClusterRole to access secrets
 $ cat << EOF | oc create -f -
@@ -204,6 +206,7 @@ parameters:
   storageAccount: ${MANAGED_SA}
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
 EOF
 ```
 
@@ -211,4 +214,86 @@ EOF
 
 ### Integrating with Azure AD
 
-TBD
+```bash
+# setup environment
+$ SP_AAD_PASSWORD='Y0urS3cr3tPa55w@rd'
+$ AZURE_TENNANT_ID="$(az account show --query tenantId -o tsv)
+$ CONSOLE_URL=$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --query "consoleProfile.url" -o tsv)
+$ OAUTH_ENDPOINT=$(echo $CONSOLE_URL|sed 's/console-openshift-console/oauth-openshift/')
+
+# log on to your openshift cluster via command line
+$ APISERVER=$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --query "apiserverProfile.url" -o tsv)
+$ PASSWORD=$(az aro list-credentials --name $CLUSTER --resource-group $RESOURCEGROUP --query "kubeadminPassword" -o tsv)
+$ oc login $APISERVER -u kubeadmin -p $PASSWORD --insecure-skip-tls-verify
+
+# create a secret for Azure AD integration
+$ oc create secret generic openid-client-secret-azuread \
+	--from-literal=clientSecret=${SP_AAD_PASSWORD} -n openshift-config
+
+# create an App Registration with callbacks to your console URL
+$ AZUREAD_APPID=$(az ad app create --display-name $CLUSTER-azuread-auth \
+  --reply-urls ${OAUTH_ENDPOINT}/oauth2callback/AAD \
+  --homepage ${CONSOLE_URL} \
+  --identifier-uris ${CONSOLE_URL} \
+  --password ${SP_AAD_PASSWORD} \
+	--query appId -o tsv)
+
+$ cat > manifest.json<< EOF
+[{
+  "name": "upn",
+  "source": null,
+  "essential": false,
+  "additionalProperties": []
+},
+{
+"name": "email",
+  "source": null,
+  "essential": false,
+  "additionalProperties": []
+}]
+EOF
+
+# update app optionalClaims
+$ az ad app update --set optionalClaims.idToken=@manifest.json --id ${AZUREAD_APPID}
+
+# update AAD app scope permissions
+# WARNING: Unless you are authenticated as a Global Administrator for this Azure Active Directory
+# 	you can ignore the message to grant the consent, since you'll be asked to do this 
+# 	once you login on your own account.
+$ az ad app permission add \
+ --api 00000002-0000-0000-c000-000000000000 \
+ --api-permissions 311a71cc-e848-46a1-bdf8-97ff7156d8e6=Scope \
+ --id ${AZUREAD_APPID}
+
+# update OpenShift OAuth
+$ cat << EOF | oc replace -f -
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: AAD
+    mappingMethod: claim
+    type: OpenID
+    openID:
+      clientID: ${AZUREAD_APPID}
+      clientSecret:
+        name: openid-client-secret-azuread
+      extraScopes:
+      - email
+      - profile
+      extraAuthorizeParameters:
+        include_granted_scopes: "true"
+      claims:
+        preferredUsername:
+        - email
+        - upn
+        name:
+        - name
+        email:
+        - email
+      issuer: https://login.microsoftonline.com/${AZURE_TENNANT_ID}
+EOF
+```
+
