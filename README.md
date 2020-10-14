@@ -236,10 +236,10 @@ $ oc create secret generic openid-client-secret-azuread \
 
 # create an App Registration with callbacks to your console URL
 $ AZUREAD_APPID=$(az ad app create --display-name $CLUSTER-azuread-auth \
-  --reply-urls ${OAUTH_ENDPOINT}/oauth2callback/AAD \
-  --homepage ${CONSOLE_URL} \
-  --identifier-uris ${CONSOLE_URL} \
-  --password ${SP_AAD_PASSWORD} \
+	--reply-urls ${OAUTH_ENDPOINT}/oauth2callback/AAD \
+	--homepage ${CONSOLE_URL} \
+	--identifier-uris ${CONSOLE_URL} \
+	--password ${SP_AAD_PASSWORD} \
 	--query appId -o tsv)
 
 $ cat > manifest.json<< EOF
