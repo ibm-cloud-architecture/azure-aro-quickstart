@@ -168,14 +168,18 @@ By default, your ARO cluster will contain the storage class `managed-premium` th
 # obtain the managed resource group for your ARO cluster
 # WARNING: If you set a --domain when deploying ARO, the value of clusterProfile.domain
 # 	will be your domain.  Log on to your azure portal and manually set the MANAGED_RG variable
-$ MANAGED_RG="aro-$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --query "clusterProfile.domain" -o tsv)"
+$ MANAGED_RG="aro-$(az aro show --name $CLUSTER \
+	--resource-group $RESOURCEGROUP --query "clusterProfile.domain" -o tsv)"
 
 # obtain the storage account that can be used to create azure-file storage
-$ MANAGED_SA=$(az storage account list -g $MANAGED_RG --query "[?starts_with(name, '$CLUSTER')].name" -o tsv)
+$ MANAGED_SA=$(az storage account list \
+	--resource-group $MANAGED_RG --query "[?starts_with(name, '$CLUSTER')].name" -o tsv)
 
 # log on to your openshift cluster via command line
-$ APISERVER=$(az aro show --name $CLUSTER --resource-group $RESOURCEGROUP --query "apiserverProfile.url" -o tsv)
-$ PASSWORD=$(az aro list-credentials --name $CLUSTER --resource-group $RESOURCEGROUP --query "kubeadminPassword" -o tsv)
+$ APISERVER=$(az aro show --name $CLUSTER \
+	--resource-group $RESOURCEGROUP --query "apiserverProfile.url" -o tsv)
+$ PASSWORD=$(az aro list-credentials --name $CLUSTER \
+	--resource-group $RESOURCEGROUP --query "kubeadminPassword" -o tsv)
 $ oc login $APISERVER -u kubeadmin -p $PASSWORD --insecure-skip-tls-verify
 
 # create ClusterRole to access secrets
